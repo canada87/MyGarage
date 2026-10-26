@@ -24,22 +24,27 @@ homelab: un solo container leggero (~15 MB di RAM), nessun account, nessun servi
 ## Avvio rapido con Docker
 
 ```bash
-git clone <questo repository> mygarage && cd mygarage
+mkdir mygarage && cd mygarage
+# scarica docker-compose.yml e .env.example dal repository, poi:
 cp .env.example .env      # imposta porta, URL e percorsi
-docker compose up -d --build
+docker compose pull && docker compose up -d
 ```
+
+L'immagine è pubblicata su GitHub Container Registry (`ghcr.io/OWNER/mygarage`) a ogni
+release. Per aggiornare: `docker compose pull && docker compose up -d`.
 
 Poi apri `http://<host>:<porta>`.
 
 | Variabile | Default | Descrizione |
 |---|---|---|
+| `MYGARAGE_IMAGE` | `ghcr.io/OWNER/mygarage:latest` | Immagine da usare; fissa una versione (es. `:0.1.0`) per aggiornare solo quando vuoi |
 | `MYGARAGE_PORT` | `8080` | Porta esposta sull'host |
 | `MYGARAGE_BASE_URL` | `http://localhost:8080` | URL usato nei link delle email |
 | `MYGARAGE_DATA_DIR` | `./data` | Database SQLite e impostazioni. **Tienilo su disco locale**, non su una share di rete (SQLite su SMB/NFS rischia lock e corruzione) |
 | `MYGARAGE_DOCS_DIR` | `./documents` | Documenti caricati. Può stare su un NAS |
 | `TZ` | `Europe/Rome` | Fuso orario per il controllo giornaliero delle scadenze |
 
-Il compose funziona anche incollato come stack in Portainer (con "build" da repository git).
+Il compose funziona anche incollato come stack in Portainer.
 
 ### Email con Gmail
 
@@ -73,6 +78,23 @@ Per una copia coerente a caldo: `sqlite3 mygarage.db ".backup mygarage-backup.db
 
 MyGarage **non ha login**: è pensata per essere raggiungibile solo dalla rete di casa o da una
 VPN (es. Tailscale). Non esporla direttamente su Internet.
+
+## Release
+
+Il workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) parte quando si
+pubblica un tag di versione: esegue i test, costruisce l'immagine e la carica su GHCR con i tag
+`X.Y.Z`, `X.Y` e `latest`.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Si può anche creare la release dalla pagina GitHub ("Draft a new release" con un nuovo tag
+`vX.Y.Z`): il push del tag avvia lo stesso workflow.
+
+Per costruire l'immagine in locale: `docker build -t mygarage .` e `MYGARAGE_IMAGE=mygarage`
+nel file `.env`.
 
 ## Sviluppo
 
