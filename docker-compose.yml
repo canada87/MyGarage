@@ -2,7 +2,7 @@ services:
   mygarage:
     # Published by the Release workflow; for a local build use `docker build -t mygarage .`
     # and set MYGARAGE_IMAGE=mygarage
-    image: ${MYGARAGE_IMAGE:-ghcr.io/OWNER/mygarage:latest}
+    image: ${MYGARAGE_IMAGE:-ghcr.io/canada87/mygarage:latest}
     container_name: mygarage
     restart: unless-stopped
     ports:

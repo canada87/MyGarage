@@ -30,14 +30,14 @@ cp .env.example .env      # imposta porta, URL e percorsi
 docker compose pull && docker compose up -d
 ```
 
-L'immagine è pubblicata su GitHub Container Registry (`ghcr.io/OWNER/mygarage`) a ogni
+L'immagine è pubblicata su GitHub Container Registry (`ghcr.io/canada87/mygarage`) a ogni
 release. Per aggiornare: `docker compose pull && docker compose up -d`.
 
 Poi apri `http://<host>:<porta>`.
 
 | Variabile | Default | Descrizione |
 |---|---|---|
-| `MYGARAGE_IMAGE` | `ghcr.io/OWNER/mygarage:latest` | Immagine da usare; fissa una versione (es. `:0.1.0`) per aggiornare solo quando vuoi |
+| `MYGARAGE_IMAGE` | `ghcr.io/canada87/mygarage:latest` | Immagine da usare; fissa una versione (es. `:0.1.0`) per aggiornare solo quando vuoi |
 | `MYGARAGE_PORT` | `8080` | Porta esposta sull'host |
 | `MYGARAGE_BASE_URL` | `http://localhost:8080` | URL usato nei link delle email |
 | `MYGARAGE_DATA_DIR` | `./data` | Database SQLite e impostazioni. **Tienilo su disco locale**, non su una share di rete (SQLite su SMB/NFS rischia lock e corruzione) |
