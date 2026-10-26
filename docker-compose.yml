@@ -1,0 +1,17 @@
+services:
+  mygarage:
+    build: .
+    image: mygarage:latest
+    container_name: mygarage
+    restart: unless-stopped
+    ports:
+      - "${MYGARAGE_PORT:-8080}:8080"
+    environment:
+      - TZ=${TZ:-Europe/Rome}
+      # Used in email links and calendar invites
+      - MYGARAGE_BASE_URL=${MYGARAGE_BASE_URL:-http://localhost:8080}
+    volumes:
+      # SQLite database and settings: keep on a local disk, not on a network share
+      - ${MYGARAGE_DATA_DIR:-./data}:/data
+      # Uploaded documents: can live on a NAS
+      - ${MYGARAGE_DOCS_DIR:-./documents}:/documents

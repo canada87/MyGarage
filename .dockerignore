@@ -1,0 +1,13 @@
+.git
+.claude
+.env
+.env.*
+data
+documents
+mockup
+docs
+backend/target
+frontend/node_modules
+frontend/build
+frontend/.svelte-kit
+**/*.db

@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MyGarage — mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F6FA;
+    --surface: #FFFFFF;
+    --surface-2: #F8FAFC;
+    --fg: #0F172A;
+    --fg-muted: #475569;
+    --fg-subtle: #64748B;
+    --border: #E2E8F0;
+    --primary: #2563EB;
+    --primary-soft: #DBEAFE;
+    --on-primary: #FFFFFF;
+    --ok: #15803D;      --ok-soft: #DCFCE7;
+    --warn: #B45309;    --warn-soft: #FEF3C7;
+    --danger: #B91C1C;  --danger-soft: #FEE2E2;
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.06);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --ease: cubic-bezier(.2,.8,.2,1);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0B1120; --surface: #111A2E; --surface-2: #0F172A;
+      --fg: #F1F5F9; --fg-muted: #CBD5E1; --fg-subtle: #94A3B8; --border: #22304A;
+      --primary: #60A5FA; --primary-soft: #1E3A8A55; --on-primary: #0B1120;
+      --ok: #4ADE80; --ok-soft: #14532D66;
+      --warn: #FBBF24; --warn-soft: #78350F66;
+      --danger: #F87171; --danger-soft: #7F1D1D66;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B1120; --surface: #111A2E; --surface-2: #0F172A;
+    --fg: #F1F5F9; --fg-muted: #CBD5E1; --fg-subtle: #94A3B8; --border: #22304A;
+    --primary: #60A5FA; --primary-soft: #1E3A8A55; --on-primary: #0B1120;
+    --ok: #4ADE80; --ok-soft: #14532D66;
+    --warn: #FBBF24; --warn-soft: #78350F66;
+    --danger: #F87171; --danger-soft: #7F1D1D66;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    font-size: 16px; line-height: 1.5;
+    background: var(--bg); color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  svg.i-sm { width: 16px; height: 16px; }
+  button { font: inherit; color: inherit; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 8px; }
+
+  /* ---------- Layout ---------- */
+  .app { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
+  .sidebar { display: none; }
+  main { padding: 16px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1200px; width: 100%; margin: 0 auto; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top));
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -.01em; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: var(--primary); color: var(--on-primary); }
+  .topbar .spacer { flex: 1; }
+  .icon-btn {
+    width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--surface); cursor: pointer;
+    transition: background .15s var(--ease), transform .1s var(--ease);
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(.96); }
+
+  .bottomnav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottomnav a {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    min-height: 60px; font-size: 12px; font-weight: 600; color: var(--fg-subtle); cursor: pointer;
+  }
+  .bottomnav a[aria-current="page"] { color: var(--primary); }
+  .bottomnav a[aria-current="page"] svg { stroke-width: 2.4; }
+
+  .fab {
+    position: fixed; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 31;
+    height: 56px; padding: 0 20px 0 16px; border-radius: 18px; border: 0; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    background: var(--primary); color: var(--on-primary);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 40%, transparent);
+    transition: transform .15s var(--ease);
+  }
+  .fab:active { transform: scale(.96); }
+
+  @media (min-width: 1024px) {
+    .app { grid-template-columns: 248px minmax(0, 1fr); }
+    .sidebar {
+      display: flex; flex-direction: column; gap: 4px;
+      position: sticky; top: 0; height: 100dvh; padding: 20px 14px;
+      background: var(--surface); border-right: 1px solid var(--border);
+    }
+    .sidebar .brand { padding: 4px 10px 20px; }
+    .side-link {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
+      font-weight: 600; color: var(--fg-muted); cursor: pointer; transition: background .15s var(--ease);
+    }
+    .side-link:hover { background: var(--surface-2); }
+    .side-link[aria-current="page"] { background: var(--primary-soft); color: var(--primary); }
+    .side-sub { padding-left: 22px; display: flex; flex-direction: column; gap: 2px; }
+    .side-sub .side-link { font-weight: 500; padding: 8px 12px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    .side-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--fg-subtle); padding: 16px 12px 6px; }
+    .sidebar .push { margin-top: auto; }
+    .topbar .brand, .bottomnav { display: none; }
+    main { padding: 28px 32px 48px; }
+    .fab { bottom: 32px; right: 32px; }
+  }
+
+  /* ---------- Common ---------- */
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 4px 0 20px; flex-wrap: wrap; }
+  .eyebrow { font-size: 14px; color: var(--fg-subtle); font-weight: 500; margin: 0; }
+  h1 { font-size: 28px; line-height: 1.2; letter-spacing: -.02em; margin: 2px 0 0; font-weight: 800; }
+  h2 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: -.01em; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .section { margin-top: 24px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .link { color: var(--primary); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; min-height: 44px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
+    border-radius: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+    transition: background .15s var(--ease), transform .1s var(--ease);
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+  .btn-primary:hover { background: color-mix(in srgb, var(--primary) 88%, black); }
+
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; padding: 4px 10px 4px 8px; border-radius: 999px; white-space: nowrap; }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); }
+  .badge.danger { background: var(--danger-soft); color: var(--danger); }
+
+  /* Italian plate */
+  .plate {
+    display: inline-flex; align-items: stretch; height: 26px; border-radius: 5px; overflow: hidden;
+    border: 1.5px solid #1E293B; background: #fff; color: #0F172A; font-weight: 800; letter-spacing: .08em; font-size: 14px;
+  }
+  .plate .eu { background: #1D4ED8; color: #fff; width: 16px; display: grid; place-items: end center; font-size: 8px; padding-bottom: 2px; letter-spacing: 0; }
+  .plate .txt { padding: 0 8px; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Dashboard ---------- */
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (min-width: 768px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stat { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .stat-top { display: flex; align-items: center; justify-content: space-between; }
+  .stat-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; }
+  .stat-ico.danger { background: var(--danger-soft); color: var(--danger); }
+  .stat-ico.warn { background: var(--warn-soft); color: var(--warn); }
+  .stat-ico.ok { background: var(--ok-soft); color: var(--ok); }
+  .stat-ico.primary { background: var(--primary-soft); color: var(--primary); }
+  .stat-val { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+  .stat-lbl { font-size: 14px; color: var(--fg-muted); font-weight: 500; }
+
+  .grid-2 { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 1100px) { .grid-2 { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); } }
+
+  .due-list { list-style: none; margin: 0; padding: 6px; }
+  .due {
+    display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center;
+    padding: 12px 10px; border-radius: 12px; cursor: pointer; transition: background .15s var(--ease);
+  }
+  .due + .due { border-top: 1px solid var(--border); }
+  .due:hover { background: var(--surface-2); }
+  .due-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); color: var(--fg-muted); border: 1px solid var(--border); }
+  .due-title { font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .car-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--fg-muted); }
+  .due-meta { font-size: 14px; color: var(--fg-subtle); margin-top: 2px; }
+  .due-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  @media (max-width: 480px) {
+    .due { grid-template-columns: 40px 1fr; }
+    .due-ico { width: 40px; height: 40px; }
+    .due-right { grid-column: 2; align-items: flex-start; flex-direction: row; }
+  }
+
+  .cars { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 768px) { .cars { grid-template-columns: 1fr 1fr; } }
+  .car-card { padding: 0; overflow: hidden; cursor: pointer; transition: transform .2s var(--ease), box-shadow .2s var(--ease); }
+  .car-card:hover { transform: translateY(-2px); }
+  .car-hero { position: relative; padding: 18px 18px 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--car) 18%, var(--surface)) 0%, var(--surface) 70%); }
+  .car-hero .silhouette { position: absolute; right: -8px; bottom: -6px; width: 150px; color: var(--car); opacity: .22; }
+  .car-name { font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+  .car-model { color: var(--fg-muted); font-size: 14px; margin-bottom: 10px; }
+  .car-body { padding: 14px 18px 18px; display: grid; gap: 14px; }
+  .km { display: flex; align-items: baseline; gap: 8px; }
+  .km-val { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+  .km-sub { font-size: 13px; color: var(--fg-subtle); }
+  .mini-status { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .progress { display: grid; gap: 6px; }
+  .progress-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--fg-muted); font-weight: 500; }
+  .bar { height: 8px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+  .bar > span { display: block; height: 100%; border-radius: 99px; transform-origin: left; animation: grow .8s var(--ease) both; }
+  .bar.ok > span { background: var(--ok); } .bar.warn > span { background: var(--warn); } .bar.danger > span { background: var(--danger); }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  .spend { padding: 18px; display: grid; gap: 14px; }
+  .spend-total { display: flex; align-items: baseline; justify-content: space-between; }
+  .spend-total .v { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+  .spend-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 14px; }
+  .spend-row .lbl { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .spend-row .amt { font-weight: 700; }
+  .spend-row .bar { grid-column: 1 / -1; height: 6px; }
+  .spend-row .bar > span { background: var(--primary); }
+
+  /* ---------- Car detail ---------- */
+  .back { display: inline-flex; align-items: center; gap: 4px; color: var(--fg-muted); font-weight: 600; min-height: 44px; cursor: pointer; }
+  .detail-hero { padding: 20px; position: relative; overflow: hidden; display: grid; gap: 16px; }
+  .detail-hero .silhouette { position: absolute; right: -20px; top: 10px; width: 260px; color: var(--car); opacity: .14; pointer-events: none; }
+  .detail-hero-top { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+  .detail-km { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .detail-km .km-val { font-size: 34px; }
+  .tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 16px -16px 0; padding: 0 16px; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-weight: 600; font-size: 14px; color: var(--fg-muted); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  @media (min-width: 1024px) { .tabs { margin: 16px 0 0; padding: 0; } }
+
+  .sched-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 768px) { .sched-grid { grid-template-columns: 1fr 1fr; } }
+  .sched { padding: 16px; display: grid; gap: 12px; }
+  .sched-head { display: flex; align-items: center; gap: 12px; }
+  .sched-head .t { font-weight: 700; }
+  .sched-head .s { font-size: 13px; color: var(--fg-subtle); }
+  .sched-head .badge { margin-left: auto; }
+  .sched-foot { display: flex; gap: 8px; }
+  .sched-foot .btn { min-height: 40px; font-size: 14px; padding: 0 12px; }
+
+  .side-cards { display: grid; gap: 16px; }
+  .list { list-style: none; margin: 0; padding: 6px; }
+  .list li { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; }
+  .list li + li { border-top: 1px solid var(--border); }
+  .list .t { font-weight: 600; font-size: 15px; }
+  .list .s { font-size: 13px; color: var(--fg-subtle); }
+  .list .grow { flex: 1; min-width: 0; }
+  .call { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--ok-soft); color: var(--ok); flex: none; }
+  .file-ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); flex: none; }
+  .card-pad { padding: 16px 16px 4px; }
+  .tyre { padding: 16px; display: grid; gap: 12px; }
+  .tyre-row { display: flex; gap: 12px; align-items: center; }
+  .tyre-km { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+
+  .view { display: none; }
+  .view.active { display: block; animation: fadein .25s var(--ease); }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .mock-note { margin-top: 32px; font-size: 13px; color: var(--fg-subtle); text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (Lucide) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="car" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+  <symbol id="file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+  <symbol id="shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+  <symbol id="wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="battery" viewBox="0 0 24 24"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/><line x1="6" x2="6" y1="11" y2="13"/><line x1="10" x2="10" y1="11" y2="13"/></symbol>
+  <symbol id="clipboard" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></symbol>
+  <symbol id="receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></symbol>
+  <symbol id="snow" viewBox="0 0 24 24"><line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></symbol>
+  <symbol id="tyre" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v6"/><path d="M12 16v6"/><path d="M2 12h6"/><path d="M16 12h6"/></symbol>
+  <symbol id="sliders" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></symbol>
+  <symbol id="moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="chev-r" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="chev-l" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+  <symbol id="mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+  <symbol id="contacts" viewBox="0 0 24 24"><path d="M16 2v2"/><path d="M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/><path d="M8 2v2"/><circle cx="12" cy="11" r="3"/><rect x="3" y="4" width="18" height="18" rx="2"/></symbol>
+  <!-- decorative car silhouette -->
+  <symbol id="silhouette" viewBox="0 0 200 80"><path fill="currentColor" stroke="none" d="M10 58c0-8 4-13 12-15l30-6 22-17c5-4 11-6 18-6h40c7 0 13 3 18 8l14 14 22 4c8 2 12 8 12 16v8c0 3-2 5-5 5h-12a17 17 0 0 0-34 0H63a17 17 0 0 0-34 0H15c-3 0-5-2-5-5z"/><circle fill="currentColor" cx="46" cy="70" r="12"/><circle fill="currentColor" cx="150" cy="70" r="12"/></symbol>
+</svg>
+
+<div class="app">
+  <!-- Sidebar (desktop) -->
+  <nav class="sidebar" aria-label="Navigazione principale">
+    <div class="brand"><span class="brand-mark"><svg class="i"><use href="#car"/></svg></span>MyGarage</div>
+    <a class="side-link" data-go="dashboard" aria-current="page"><svg class="i" aria-hidden="true"><use href="#home"/></svg>Dashboard</a>
+    <a class="side-link" data-go="car"><svg class="i" aria-hidden="true"><use href="#car"/></svg>Auto</a>
+    <div class="side-sub">
+      <a class="side-link" data-go="car"><span class="dot" style="background:#2563EB"></span>Golf</a>
+      <a class="side-link" data-go="car"><span class="dot" style="background:#E11D48"></span>Panda</a>
+    </div>
+    <a class="side-link"><svg class="i" aria-hidden="true"><use href="#calendar"/></svg>Scadenze</a>
+    <a class="side-link"><svg class="i" aria-hidden="true"><use href="#wallet"/></svg>Spese</a>
+    <a class="side-link"><svg class="i" aria-hidden="true"><use href="#contacts"/></svg>Rubrica</a>
+    <div class="push"></div>
+    <a class="side-link"><svg class="i" aria-hidden="true"><use href="#sliders"/></svg>Impostazioni</a>
+  </nav>
+
+  <div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark"><svg class="i"><use href="#car"/></svg></span>MyGarage</div>
+      <div class="spacer"></div>
+      <button class="icon-btn" id="themeBtn" aria-label="Cambia tema"><svg class="i"><use href="#moon"/></svg></button>
+      <button class="icon-btn" aria-label="Impostazioni"><svg class="i"><use href="#sliders"/></svg></button>
+    </header>
+
+    <main id="main">
+      <!-- =================== DASHBOARD =================== -->
+      <section class="view active" id="view-dashboard" aria-labelledby="h-dash">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Lunedì 26 ottobre 2026</p>
+            <h1 id="h-dash">Il tuo garage</h1>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="card stat">
+            <div class="stat-top"><span class="stat-ico danger"><svg class="i" aria-hidden="true"><use href="#alert"/></svg></span></div>
+            <div><div class="stat-val num">1</div><div class="stat-lbl">Scadute</div></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-top"><span class="stat-ico warn"><svg class="i" aria-hidden="true"><use href="#clock"/></svg></span></div>
+            <div><div class="stat-val num">3</div><div class="stat-lbl">In arrivo</div></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-top"><span class="stat-ico ok"><svg class="i" aria-hidden="true"><use href="#check"/></svg></span></div>
+            <div><div class="stat-val num">14</div><div class="stat-lbl">In regola</div></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-top"><span class="stat-ico primary"><svg class="i" aria-hidden="true"><use href="#wallet"/></svg></span></div>
+            <div><div class="stat-val num">€ 1.284</div><div class="stat-lbl">Spese 2026</div></div>
+          </div>
+        </div>
+
+        <div class="grid-2 section">
+          <div>
+            <div class="section-head">
+              <h2>Prossime scadenze</h2>
+              <a class="link">Vedi tutte <svg class="i i-sm" aria-hidden="true"><use href="#chev-r"/></svg></a>
+            </div>
+            <div class="card">
+              <ul class="due-list">
+                <li class="due" data-go="car">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#wrench"/></svg></span>
+                  <div>
+                    <div class="due-title">Tagliando <span class="car-chip"><span class="dot" style="background:#2563EB;width:8px;height:8px;border-radius:50%"></span>Golf</span></div>
+                    <div class="due-meta num">Previsto a 30.000 km · ora 30.420 km</div>
+                  </div>
+                  <div class="due-right"><span class="badge danger"><svg class="i i-sm" aria-hidden="true"><use href="#alert"/></svg>Superato di 420 km</span></div>
+                </li>
+                <li class="due">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#receipt"/></svg></span>
+                  <div>
+                    <div class="due-title">Bollo <span class="car-chip"><span class="dot" style="background:#E11D48;width:8px;height:8px;border-radius:50%"></span>Panda</span></div>
+                    <div class="due-meta num">Scade sabato 31 ottobre</div>
+                  </div>
+                  <div class="due-right"><span class="badge warn"><svg class="i i-sm" aria-hidden="true"><use href="#clock"/></svg>Tra 5 giorni</span></div>
+                </li>
+                <li class="due">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#snow"/></svg></span>
+                  <div>
+                    <div class="due-title">Gomme invernali <span class="car-chip"><span class="dot" style="background:#E11D48;width:8px;height:8px;border-radius:50%"></span>Panda</span></div>
+                    <div class="due-meta num">Entro domenica 15 novembre</div>
+                  </div>
+                  <div class="due-right"><span class="badge warn"><svg class="i i-sm" aria-hidden="true"><use href="#clock"/></svg>Tra 20 giorni</span></div>
+                </li>
+                <li class="due" data-go="car">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#snow"/></svg></span>
+                  <div>
+                    <div class="due-title">Gomme invernali <span class="car-chip"><span class="dot" style="background:#2563EB;width:8px;height:8px;border-radius:50%"></span>Golf</span></div>
+                    <div class="due-meta num">Entro domenica 15 novembre</div>
+                  </div>
+                  <div class="due-right"><span class="badge warn"><svg class="i i-sm" aria-hidden="true"><use href="#clock"/></svg>Tra 20 giorni</span></div>
+                </li>
+                <li class="due" data-go="car">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#shield"/></svg></span>
+                  <div>
+                    <div class="due-title">RCA <span class="car-chip"><span class="dot" style="background:#2563EB;width:8px;height:8px;border-radius:50%"></span>Golf</span></div>
+                    <div class="due-meta num">Scade venerdì 18 dicembre</div>
+                  </div>
+                  <div class="due-right"><span class="badge ok"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>Tra 53 giorni</span></div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-head"><h2>Spese 2026</h2><a class="link">Dettaglio <svg class="i i-sm" aria-hidden="true"><use href="#chev-r"/></svg></a></div>
+            <div class="card spend">
+              <div class="spend-total"><span class="stat-lbl">Totale anno</span><span class="v num">€ 1.284</span></div>
+              <div class="spend-row"><span class="lbl"><svg class="i i-sm" aria-hidden="true"><use href="#shield"/></svg>Assicurazione</span><span class="amt num">€ 620</span><div class="bar"><span style="width:100%"></span></div></div>
+              <div class="spend-row"><span class="lbl"><svg class="i i-sm" aria-hidden="true"><use href="#wrench"/></svg>Manutenzione</span><span class="amt num">€ 389</span><div class="bar"><span style="width:63%"></span></div></div>
+              <div class="spend-row"><span class="lbl"><svg class="i i-sm" aria-hidden="true"><use href="#receipt"/></svg>Bollo</span><span class="amt num">€ 196</span><div class="bar"><span style="width:32%"></span></div></div>
+              <div class="spend-row"><span class="lbl"><svg class="i i-sm" aria-hidden="true"><use href="#clipboard"/></svg>Revisione</span><span class="amt num">€ 79</span><div class="bar"><span style="width:13%"></span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><h2>Le tue auto</h2><a class="link"><svg class="i i-sm" aria-hidden="true"><use href="#plus"/></svg>Aggiungi</a></div>
+          <div class="cars">
+            <article class="card car-card" style="--car:#2563EB" data-go="car" tabindex="0" aria-label="Apri Golf">
+              <div class="car-hero">
+                <svg class="silhouette" aria-hidden="true"><use href="#silhouette"/></svg>
+                <div class="car-name">Golf</div>
+                <div class="car-model">Volkswagen Golf 8 · 1.5 eTSI · 2022</div>
+                <span class="plate"><span class="eu">I</span><span class="txt">GH 123 AB</span></span>
+              </div>
+              <div class="car-body">
+                <div class="km"><span class="km-val num">30.420 km</span><span class="km-sub">aggiornati 3 giorni fa</span></div>
+                <div class="mini-status">
+                  <span class="badge danger"><svg class="i i-sm" aria-hidden="true"><use href="#alert"/></svg>1 scaduta</span>
+                  <span class="badge warn"><svg class="i i-sm" aria-hidden="true"><use href="#clock"/></svg>1 in arrivo</span>
+                  <span class="badge ok"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>7 ok</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-row"><span>RCA · 18 dic</span><span class="num">53 gg</span></div>
+                  <div class="bar ok"><span style="width:85%"></span></div>
+                </div>
+              </div>
+            </article>
+            <article class="card car-card" style="--car:#E11D48" tabindex="0" aria-label="Apri Panda">
+              <div class="car-hero">
+                <svg class="silhouette" aria-hidden="true"><use href="#silhouette"/></svg>
+                <div class="car-name">Panda</div>
+                <div class="car-model">Fiat Panda · 1.0 Hybrid · 2021</div>
+                <span class="plate"><span class="eu">I</span><span class="txt">GB 456 CD</span></span>
+              </div>
+              <div class="car-body">
+                <div class="km"><span class="km-val num">41.870 km</span><span class="km-sub">aggiornati 12 giorni fa</span></div>
+                <div class="mini-status">
+                  <span class="badge warn"><svg class="i i-sm" aria-hidden="true"><use href="#clock"/></svg>2 in arrivo</span>
+                  <span class="badge ok"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>7 ok</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-row"><span>Bollo · 31 ott</span><span class="num">5 gg</span></div>
+                  <div class="bar warn"><span style="width:98%"></span></div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+        <p class="mock-note">Mockup statico con dati di esempio · clicca la Golf per il dettaglio auto</p>
+      </section>
+
+      <!-- =================== CAR DETAIL =================== -->
+      <section class="view" id="view-car" aria-labelledby="h-car" style="--car:#2563EB">
+        <a class="back" data-go="dashboard"><svg class="i" aria-hidden="true"><use href="#chev-l"/></svg>Dashboard</a>
+        <div class="card detail-hero">
+          <svg class="silhouette" aria-hidden="true"><use href="#silhouette"/></svg>
+          <div class="detail-hero-top">
+            <div>
+              <h1 id="h-car">Golf</h1>
+              <div class="car-model">Volkswagen Golf 8 · 1.5 eTSI · immatricolata 03/2022</div>
+              <span class="plate"><span class="eu">I</span><span class="txt">GH 123 AB</span></span>
+            </div>
+          </div>
+          <div class="detail-km">
+            <div>
+              <div class="stat-lbl">Contachilometri</div>
+              <div class="km"><span class="km-val num">30.420 km</span><span class="km-sub">23 ott 2026</span></div>
+            </div>
+            <button class="btn btn-primary"><svg class="i" aria-hidden="true"><use href="#gauge"/></svg>Aggiorna km</button>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Sezioni auto">
+          <button class="tab" role="tab" aria-selected="true">Panoramica</button>
+          <button class="tab" role="tab" aria-selected="false">Scadenze</button>
+          <button class="tab" role="tab" aria-selected="false">Storico</button>
+          <button class="tab" role="tab" aria-selected="false">Gomme</button>
+          <button class="tab" role="tab" aria-selected="false">Documenti</button>
+          <button class="tab" role="tab" aria-selected="false">Contatti</button>
+        </div>
+
+        <div class="grid-2 section">
+          <div>
+            <div class="section-head"><h2>Scadenze</h2><a class="link"><svg class="i i-sm" aria-hidden="true"><use href="#plus"/></svg>Nuova</a></div>
+            <div class="sched-grid">
+              <div class="card sched">
+                <div class="sched-head">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#wrench"/></svg></span>
+                  <div><div class="t">Tagliando</div><div class="s">Ogni 12 mesi o 15.000 km</div></div>
+                  <span class="badge danger"><svg class="i i-sm" aria-hidden="true"><use href="#alert"/></svg>Scaduto</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-row"><span>Km</span><span class="num">30.420 / 30.000</span></div>
+                  <div class="bar danger"><span style="width:100%"></span></div>
+                  <div class="progress-row"><span>Tempo</span><span class="num">entro 12 mar 2027</span></div>
+                  <div class="bar ok"><span style="width:62%"></span></div>
+                </div>
+                <div class="sched-foot"><button class="btn btn-primary"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>Segna fatto</button><button class="btn">Modifica</button></div>
+              </div>
+              <div class="card sched">
+                <div class="sched-head">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#snow"/></svg></span>
+                  <div><div class="t">Gomme invernali</div><div class="s">Ogni anno entro il 15/11</div></div>
+                  <span class="badge warn"><svg class="i i-sm" aria-hidden="true"><use href="#clock"/></svg>20 giorni</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-row"><span>Tempo</span><span class="num">entro 15 nov 2026</span></div>
+                  <div class="bar warn"><span style="width:94%"></span></div>
+                </div>
+                <div class="sched-foot"><button class="btn btn-primary"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>Segna fatto</button><button class="btn">Modifica</button></div>
+              </div>
+              <div class="card sched">
+                <div class="sched-head">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#shield"/></svg></span>
+                  <div><div class="t">RCA</div><div class="s">Compagnia assicurativa · annuale</div></div>
+                  <span class="badge ok"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>53 giorni</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-row"><span>Tempo</span><span class="num">scade 18 dic 2026</span></div>
+                  <div class="bar ok"><span style="width:85%"></span></div>
+                </div>
+                <div class="sched-foot"><button class="btn btn-primary"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>Rinnova</button><button class="btn">Modifica</button></div>
+              </div>
+              <div class="card sched">
+                <div class="sched-head">
+                  <span class="due-ico"><svg class="i" aria-hidden="true"><use href="#clipboard"/></svg></span>
+                  <div><div class="t">Revisione</div><div class="s">Prima a 4 anni, poi ogni 2</div></div>
+                  <span class="badge ok"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>Mar 2028</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-row"><span>Tempo</span><span class="num">entro 31 mar 2028 · fatta 18 mar 2026</span></div>
+                  <div class="bar ok"><span style="width:30%"></span></div>
+                </div>
+                <div class="sched-foot"><button class="btn btn-primary"><svg class="i i-sm" aria-hidden="true"><use href="#check"/></svg>Segna fatta</button><button class="btn">Modifica</button></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="side-cards">
+            <div>
+              <div class="section-head"><h2>Numeri utili</h2><a class="link">Tutti <svg class="i i-sm" aria-hidden="true"><use href="#chev-r"/></svg></a></div>
+              <div class="card">
+                <ul class="list">
+                  <li><span class="file-ico" style="background:var(--danger-soft);color:var(--danger)"><svg class="i" aria-hidden="true"><use href="#truck"/></svg></span>
+                    <div class="grow"><div class="t">Soccorso stradale</div><div class="s num">Assistenza stradale · 800 000 000</div></div>
+                    <a class="call" href="tel:800000000" aria-label="Chiama soccorso stradale"><svg class="i" aria-hidden="true"><use href="#phone"/></svg></a></li>
+                  <li><span class="file-ico"><svg class="i" aria-hidden="true"><use href="#shield"/></svg></span>
+                    <div class="grow"><div class="t">Assicurazione</div><div class="s num">Polizza n. 12345678</div></div>
+                    <a class="call" href="tel:0200000000" aria-label="Chiama assicurazione"><svg class="i" aria-hidden="true"><use href="#phone"/></svg></a></li>
+                  <li><span class="file-ico"><svg class="i" aria-hidden="true"><use href="#wrench"/></svg></span>
+                    <div class="grow"><div class="t">Officina Rossi</div><div class="s">Meccanico di fiducia</div></div>
+                    <a class="call" href="tel:0200000001" aria-label="Chiama officina"><svg class="i" aria-hidden="true"><use href="#phone"/></svg></a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div>
+              <div class="section-head"><h2>Gomme montate</h2><a class="link">Storico <svg class="i i-sm" aria-hidden="true"><use href="#chev-r"/></svg></a></div>
+              <div class="card tyre">
+                <div class="tyre-row">
+                  <span class="file-ico"><svg class="i" aria-hidden="true"><use href="#tyre"/></svg></span>
+                  <div class="grow"><div class="t" style="font-weight:700">Estive · Michelin Primacy 4</div><div class="s" style="font-size:13px;color:var(--fg-subtle)">225/45 R17 · montate 14 apr 2026</div></div>
+                </div>
+                <div class="km"><span class="tyre-km num">23.640 km</span><span class="km-sub">totali su questo treno</span></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="section-head"><h2>Documenti</h2><a class="link"><svg class="i i-sm" aria-hidden="true"><use href="#plus"/></svg>Carica</a></div>
+              <div class="card">
+                <ul class="list">
+                  <li><span class="file-ico"><svg class="i" aria-hidden="true"><use href="#file"/></svg></span><div class="grow"><div class="t">Libretto di circolazione</div><div class="s">PDF · 1,2 MB</div></div></li>
+                  <li><span class="file-ico"><svg class="i" aria-hidden="true"><use href="#file"/></svg></span><div class="grow"><div class="t">Polizza RCA 2026</div><div class="s">PDF · 340 KB</div></div></li>
+                  <li><span class="file-ico"><svg class="i" aria-hidden="true"><use href="#file"/></svg></span><div class="grow"><div class="t">Fattura tagliando mar 2026</div><div class="s">PDF · collegata all'intervento</div></div></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottomnav" aria-label="Navigazione">
+    <a data-go="dashboard" aria-current="page"><svg class="i" aria-hidden="true"><use href="#home"/></svg>Home</a>
+    <a data-go="car"><svg class="i" aria-hidden="true"><use href="#car"/></svg>Auto</a>
+    <a><svg class="i" aria-hidden="true"><use href="#calendar"/></svg>Scadenze</a>
+    <a><svg class="i" aria-hidden="true"><use href="#wallet"/></svg>Spese</a>
+    <a><svg class="i" aria-hidden="true"><use href="#contacts"/></svg>Rubrica</a>
+  </nav>
+  <button class="fab"><svg class="i" aria-hidden="true"><use href="#plus"/></svg>Registra</button>
+</div>
+
+<script>
+  const views = { dashboard: 'view-dashboard', car: 'view-car' };
+  function go(name) {
+    for (const [k, id] of Object.entries(views)) document.getElementById(id).classList.toggle('active', k === name);
+    document.querySelectorAll('.bottomnav a, .sidebar > .side-link').forEach(a => {
+      if (a.dataset.go === name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    window.scrollTo({ top: 0 });
+  }
+  document.querySelectorAll('[data-go]').forEach(el => {
+    el.addEventListener('click', () => go(el.dataset.go));
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') go(el.dataset.go); });
+  });
+  const root = document.documentElement, btn = document.getElementById('themeBtn');
+  function isDark() { return root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; }
+  function syncIcon() { btn.querySelector('use').setAttribute('href', isDark() ? '#sun' : '#moon'); }
+  btn.addEventListener('click', () => { root.dataset.theme = isDark() ? 'light' : 'dark'; syncIcon(); });
+  syncIcon();
+</script>
+</body>
+</html>

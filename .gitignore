@@ -1,0 +1,24 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data (database, uploaded documents)
+data/
+documents/
+*.db
+*.db-shm
+*.db-wal
+
+# Build output
+target/
+node_modules/
+frontend/build/
+frontend/.svelte-kit/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.claude/
