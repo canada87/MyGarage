@@ -193,16 +193,17 @@ struct VehicleKm {
     km_date: Option<NaiveDate>,
 }
 
-/// Latest odometer reading per vehicle (highest date, then highest km).
+/// Latest odometer reading per vehicle: most recent date, then the last one entered
+/// (so a same-day correction can lower the km).
 pub const CURRENT_KM_SQL: &str = "
     SELECT v.id, v.name, v.color,
-        (SELECT km FROM odometer_readings r WHERE r.vehicle_id = v.id ORDER BY date DESC, km DESC LIMIT 1) AS km,
-        (SELECT date FROM odometer_readings r WHERE r.vehicle_id = v.id ORDER BY date DESC, km DESC LIMIT 1) AS km_date
+        (SELECT km FROM odometer_readings r WHERE r.vehicle_id = v.id ORDER BY date DESC, id DESC LIMIT 1) AS km,
+        (SELECT date FROM odometer_readings r WHERE r.vehicle_id = v.id ORDER BY date DESC, id DESC LIMIT 1) AS km_date
     FROM vehicles v";
 
 pub async fn current_km(db: &SqlitePool, vehicle_id: i64) -> sqlx::Result<(Option<i64>, Option<NaiveDate>)> {
     let row: Option<(i64, NaiveDate)> = sqlx::query_as(
-        "SELECT km, date FROM odometer_readings WHERE vehicle_id = ? ORDER BY date DESC, km DESC LIMIT 1",
+        "SELECT km, date FROM odometer_readings WHERE vehicle_id = ? ORDER BY date DESC, id DESC LIMIT 1",
     )
     .bind(vehicle_id)
     .fetch_optional(db)

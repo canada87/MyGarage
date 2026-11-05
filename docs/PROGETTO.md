@@ -116,7 +116,8 @@ Su `tyre_sets`: `initial_km?` (km già percorsi prima di entrare nell'app).
 
 Una scadenza può avere un limite a **tempo**, a **km** o entrambi ("quello che arriva prima").
 
-Stato, calcolato sull'ultima lettura km disponibile:
+Stato, calcolato sull'ultima lettura km disponibile (data più recente; a parità di data, l'ultima
+inserita, così una correzione fatta lo stesso giorno può anche abbassare i km):
 
 | Stato | Condizione |
 |---|---|
@@ -171,7 +172,10 @@ Navigazione: barra in basso su telefono, barra laterale da 1024 px in su.
 1. **Dashboard globale** — riepilogo (scadute / in arrivo / in regola / spese dell'anno),
    prossime scadenze di tutte le auto ordinate per urgenza, card per auto, spese per categoria.
 2. **Auto** — elenco → dettaglio con schede: Panoramica, Scadenze, Storico, Gomme, Documenti,
-   Contatti. In cima: targa, km attuali, "Aggiorna km".
+   Km, Contatti. In cima: targa, km attuali, "Aggiorna km".
+   La scheda **Km** mostra il grafico del contachilometri, i km per anno (stimati dalle letture
+   più vicine al 1° gennaio), le medie e l'elenco delle letture: ognuna si corregge o si elimina
+   con un tocco. Le letture nate da un intervento si modificano dall'intervento.
 3. **Scadenze** — tutte le scadenze, filtrabili per auto, stato e categoria.
 4. **Spese** — totali per anno, auto e categoria; elenco degli interventi con costo.
 5. **Rubrica** — numeri globali e per auto, chiamata con un tap.

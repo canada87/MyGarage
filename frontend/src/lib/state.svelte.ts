@@ -1,6 +1,6 @@
 import { SvelteSet } from 'svelte/reactivity';
 import { api } from './api';
-import type { CarEvent, Contact, DocumentFile, ScheduleView, TyreSetView, VehicleSummary } from './types';
+import type { CarEvent, Contact, DocumentFile, OdometerReading, ScheduleView, TyreSetView, VehicleSummary } from './types';
 
 /** Shared app state: bump `version` after any write so pages reload their data. */
 export const app = $state({
@@ -93,7 +93,7 @@ export function deleteWithUndo(kind: string, id: number, label: string, path: st
 /* ---------- Dialogs ---------- */
 
 export type DialogRequest =
-	| { kind: 'km'; vehicleId?: number }
+	| { kind: 'km'; vehicleId?: number; reading?: OdometerReading; canDelete?: boolean }
 	| { kind: 'event'; vehicleId?: number; schedule?: ScheduleView; event?: CarEvent }
 	| { kind: 'schedule'; vehicleId: number; schedule?: ScheduleView }
 	| { kind: 'document'; vehicleId?: number; eventId?: number; doc?: DocumentFile }

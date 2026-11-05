@@ -16,7 +16,7 @@
 	{#if dialog.current}
 	{@const d = dialog.current}
 	{#if d.kind === 'km'}
-		<KmDialog vehicleId={d.vehicleId} />
+		<KmDialog vehicleId={d.vehicleId} reading={d.reading} canDelete={d.canDelete} />
 	{:else if d.kind === 'event'}
 		<EventDialog vehicleId={d.vehicleId} schedule={d.schedule} event={d.event} />
 	{:else if d.kind === 'schedule'}

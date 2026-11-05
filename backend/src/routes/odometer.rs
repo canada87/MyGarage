@@ -11,7 +11,7 @@ use crate::{
 };
 
 pub async fn list(State(state): State<AppState>, Path(vehicle_id): Path<i64>) -> ApiResult<Vec<OdometerReading>> {
-    let rows = sqlx::query_as("SELECT * FROM odometer_readings WHERE vehicle_id = ? ORDER BY date DESC, km DESC")
+    let rows = sqlx::query_as("SELECT * FROM odometer_readings WHERE vehicle_id = ? ORDER BY date DESC, id DESC")
         .bind(vehicle_id)
         .fetch_all(&state.db)
         .await?;
@@ -57,13 +57,21 @@ pub async fn update(State(state): State<AppState>, Path(id): Path<i64>, Json(r):
     if linked.is_some() {
         return Err(bad("Questa lettura viene da un intervento: modifica l'intervento"));
     }
-    let row = sqlx::query_as("UPDATE odometer_readings SET date = ?, km = ?, note = ? WHERE id = ? RETURNING *")
+    let row: OdometerReading = sqlx::query_as("UPDATE odometer_readings SET date = ?, km = ?, note = ? WHERE id = ? RETURNING *")
         .bind(r.date)
         .bind(r.km)
         .bind(clean(r.note))
         .bind(id)
         .fetch_one(&state.db)
         .await?;
+    // The reading taken when the car was added mirrors vehicles.initial_km.
+    if row.source == "initial" {
+        sqlx::query("UPDATE vehicles SET initial_km = ? WHERE id = ?")
+            .bind(row.km)
+            .bind(row.vehicle_id)
+            .execute(&state.db)
+            .await?;
+    }
     Ok(Json(row))
 }
 

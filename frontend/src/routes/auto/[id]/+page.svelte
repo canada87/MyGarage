@@ -7,6 +7,7 @@
 	import ScheduleCard from '#lib/components/ScheduleCard.svelte';
 	import ContactList from '#lib/components/ContactList.svelte';
 	import DocumentList from '#lib/components/DocumentList.svelte';
+	import KmHistory from '#lib/components/KmHistory.svelte';
 	import { api, qs } from '#lib/api.ts';
 	import {
 		categoryIcon,
@@ -17,7 +18,7 @@
 		fmtEuro,
 		fmtKm
 	} from '#lib/format.ts';
-	import { app, confirmDialog, deleteWithUndo, isPending, openDialog, refresh, toast } from '#lib/state.svelte.ts';
+	import { app, confirmDialog, isPending, openDialog, refresh, toast } from '#lib/state.svelte.ts';
 	import type { CarEvent, Contact, DocumentFile, OdometerReading, TyreSetView, VehicleDetail } from '#lib/types.ts';
 
 	const id = $derived(Number(page.params.id));
@@ -61,6 +62,7 @@
 		{ key: 'panoramica', label: 'Panoramica' },
 		{ key: 'scadenze', label: 'Scadenze' },
 		{ key: 'storico', label: 'Storico' },
+		{ key: 'km', label: 'Km' },
 		{ key: 'gomme', label: 'Gomme' },
 		{ key: 'documenti', label: 'Documenti' },
 		{ key: 'contatti', label: 'Numeri utili' }
@@ -83,12 +85,6 @@
 	const mounted = $derived(tyres.find((t) => t.mounted));
 	const subtitle = $derived(v ? [v.make, v.model, v.year].filter(Boolean).join(' · ') : '');
 
-	const sourceLabel: Record<string, string> = {
-		manual: 'A mano',
-		event: 'Da intervento',
-		initial: 'Inserimento auto',
-		ha: 'Home Assistant'
-	};
 
 	async function setArchived(archived: boolean) {
 		if (!v) return;
@@ -158,7 +154,9 @@
 		<div class="hero-km">
 			<div>
 				<div class="stat-lbl">Contachilometri</div>
-				<div class="km"><span class="km-val num">{fmtKm(v.current_km)}</span><span class="km-sub">{daysAgo(v.current_km_date)}</span></div>
+				<button class="km km-link" type="button" onclick={() => setTab('km')} aria-label="Storico km: {fmtKm(v.current_km)}">
+					<span class="km-val num">{fmtKm(v.current_km)}</span><span class="km-sub">{daysAgo(v.current_km_date)}</span><Icon name="chevron-right" size={18} />
+				</button>
 			</div>
 			<button class="btn btn-primary" type="button" onclick={() => openDialog({ kind: 'km', vehicleId: v!.id })}>
 				<Icon name="gauge" />Aggiorna km
@@ -283,29 +281,8 @@
 				</div>
 			{/if}
 
-			<div class="section-head section">
-				<h2>Letture km</h2>
-				<button class="btn btn-sm" type="button" onclick={() => openDialog({ kind: 'km', vehicleId: v!.id })}><Icon name="plus" size={18} />Aggiungi</button>
-			</div>
-			<ul class="card list">
-				{#each readings.filter((r) => !isPending('reading', r.id)) as r (r.id)}
-					<li>
-						<span class="tile-ico"><Icon name="gauge" size={18} /></span>
-						<div class="grow">
-							<div class="t num">{fmtKm(r.km)}</div>
-							<div class="s">{fmtDate(r.date)} · {sourceLabel[r.source] ?? r.source}{r.note && r.source === 'manual' ? ` · ${r.note}` : ''}</div>
-						</div>
-						{#if r.source === 'manual' || r.source === 'ha'}
-							<button
-								class="icon-btn ghost"
-								type="button"
-								aria-label="Elimina lettura del {fmtDate(r.date)}"
-								onclick={() => deleteWithUndo('reading', r.id, 'Lettura', `/odometer/${r.id}`)}><Icon name="trash" size={18} /></button
-							>
-						{/if}
-					</li>
-				{/each}
-			</ul>
+		{:else if tab === 'km'}
+			<KmHistory {readings} {events} vehicleId={v.id} />
 		{:else if tab === 'gomme'}
 			<div class="section-head">
 				<h2>Treni di gomme</h2>
@@ -452,6 +429,21 @@
 	.km-sub {
 		font-size: 13px;
 		color: var(--fg-subtle);
+	}
+	.km-link {
+		border: 0;
+		background: transparent;
+		padding: 0;
+		cursor: pointer;
+		color: var(--fg-subtle);
+		align-items: center;
+		min-height: 44px;
+		text-align: left;
+	}
+	.km-link:hover .km-val {
+		text-decoration: underline;
+		text-decoration-thickness: 2px;
+		text-underline-offset: 4px;
 	}
 	.menu-wrap {
 		position: relative;
