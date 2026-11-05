@@ -133,8 +133,8 @@ pub async fn create(State(state): State<AppState>, Json(input): Json<CreateVehic
     }
     let v = input.vehicle;
     let id: i64 = sqlx::query_scalar(
-        "INSERT INTO vehicles (name, make, model, plate, vin, year, registration_date, purchase_date, purchased_used, initial_km, color, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+        "INSERT INTO vehicles (name, make, model, plate, vin, year, registration_date, purchase_date, purchased_used, initial_km, color, notes, ha_entity)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
     )
     .bind(v.name.trim())
     .bind(clean(v.make))
@@ -148,6 +148,7 @@ pub async fn create(State(state): State<AppState>, Json(input): Json<CreateVehic
     .bind(input.current_km)
     .bind(clean(v.color).unwrap_or_else(|| "#2563EB".into()))
     .bind(clean(v.notes))
+    .bind(clean(v.ha_entity))
     .fetch_one(&state.db)
     .await?;
 
@@ -193,7 +194,7 @@ pub async fn update(State(state): State<AppState>, Path(id): Path<i64>, Json(v):
     validate(&v)?;
     let res = sqlx::query(
         "UPDATE vehicles SET name = ?, make = ?, model = ?, plate = ?, vin = ?, year = ?, registration_date = ?,
-         purchase_date = ?, purchased_used = ?, color = ?, notes = ?, archived = ? WHERE id = ?",
+         purchase_date = ?, purchased_used = ?, color = ?, notes = ?, archived = ?, ha_entity = ? WHERE id = ?",
     )
     .bind(v.name.trim())
     .bind(clean(v.make))
@@ -207,6 +208,7 @@ pub async fn update(State(state): State<AppState>, Path(id): Path<i64>, Json(v):
     .bind(clean(v.color).unwrap_or_else(|| "#2563EB".into()))
     .bind(clean(v.notes))
     .bind(v.archived)
+    .bind(clean(v.ha_entity))
     .bind(id)
     .execute(&state.db)
     .await?;

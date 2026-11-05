@@ -3,12 +3,17 @@
 	import Modal from '#lib/components/Modal.svelte';
 	import { api } from '#lib/api.ts';
 	import { categories, categoryIcon, categoryLabel, intervalText, parseIntOrNull } from '#lib/format.ts';
-	import { confirmDialog, toast } from '#lib/state.svelte.ts';
+	import { confirmDialog, refresh, toast } from '#lib/state.svelte.ts';
 	import { getTheme, setTheme, type Theme } from '#lib/theme.ts';
-	import type { Category, Settings, TaskType } from '#lib/types.ts';
+	import type { Category, HaSyncResult, Settings, TaskType } from '#lib/types.ts';
+	import { fmtKm } from '#lib/format.ts';
 
 	let s = $state<Settings | null>(null);
 	let password = $state('');
+	let haToken = $state('');
+	let haBusy = $state<'' | 'test' | 'sync'>('');
+	let haMessage = $state<{ kind: 'ok' | 'danger'; text: string } | null>(null);
+	let haResults = $state<HaSyncResult[]>([]);
 	let error = $state('');
 	let saving = $state(false);
 	let testing = $state(false);
@@ -35,8 +40,13 @@
 		}
 		saving = true;
 		try {
-			s = await api.put<Settings>('/settings', { ...s, smtp_password: password ? password : null });
+			s = await api.put<Settings>('/settings', {
+				...s,
+				smtp_password: password ? password : null,
+				ha_token: haToken ? haToken : null
+			});
 			password = '';
+			haToken = '';
 			toast('Impostazioni salvate');
 		} catch (err) {
 			error = (err as Error).message;
@@ -57,6 +67,43 @@
 			testing = false;
 		}
 	}
+
+	/* ---- Home Assistant ---- */
+	async function testHa() {
+		haMessage = null;
+		haBusy = 'test';
+		try {
+			const r = await api.post<{ message: string }>('/ha/test');
+			haMessage = { kind: 'ok', text: `Connessione riuscita (${r.message})` };
+		} catch (err) {
+			haMessage = { kind: 'danger', text: (err as Error).message };
+		} finally {
+			haBusy = '';
+		}
+	}
+
+	async function syncHa() {
+		haMessage = null;
+		haBusy = 'sync';
+		try {
+			haResults = await api.post<HaSyncResult[]>('/ha/sync');
+			if (!haResults.length) haMessage = { kind: 'ok', text: 'Nessuna auto collegata: scegli il sensore in “Modifica dati” dell’auto.' };
+			s = await api.get<Settings>('/settings');
+			refresh();
+		} catch (err) {
+			haMessage = { kind: 'danger', text: (err as Error).message };
+		} finally {
+			haBusy = '';
+		}
+	}
+
+	const outcomeLabel: Record<HaSyncResult['outcome'], string> = {
+		nuova: 'Nuova lettura salvata',
+		aggiornata: 'Lettura di oggi aggiornata',
+		invariata: 'Nessun km in più',
+		ignorata: 'Ignorata: valore più basso dei km attuali',
+		errore: 'Errore'
+	};
 
 	/* ---- Task templates ---- */
 	let editing = $state<{
@@ -217,6 +264,66 @@
 			</div>
 		</section>
 
+		<section class="card card-pad form" aria-labelledby="h-ha">
+			<div class="row"><span class="tile-ico"><Icon name="home" /></span><h2 id="h-ha">Km da Home Assistant</h2></div>
+			<p class="subtle" style="margin:0">
+				Facoltativo. MyGarage legge ogni ora il contachilometri delle auto collegate e salva una lettura al giorno. Il sensore si sceglie in
+				“Modifica dati” dell’auto.
+			</p>
+			<div class="form-grid cols-2">
+				<div class="field">
+					<label for="st-ha-url">Indirizzo di Home Assistant</label>
+					<input
+						id="st-ha-url"
+						class="input"
+						type="url"
+						inputmode="url"
+						autocapitalize="none"
+						spellcheck="false"
+						bind:value={s.ha_url}
+						placeholder="http://homeassistant.local:8123"
+					/>
+				</div>
+				<div class="field">
+					<label for="st-ha-token">Token di accesso</label>
+					<input
+						id="st-ha-token"
+						class="input"
+						type="password"
+						autocomplete="off"
+						bind:value={haToken}
+						placeholder={s.ha_token_set ? '•••••••• (salvato)' : 'Token a lunga durata'}
+					/>
+					<span class="hint">In Home Assistant: profilo → Sicurezza → Token di accesso a lunga durata → Crea token.</span>
+				</div>
+			</div>
+			<div class="row">
+				<button class="btn" type="button" onclick={testHa} disabled={!!haBusy || !s.ha_token_set || !s.ha_url}>
+					<Icon name="check" size={18} />{haBusy === 'test' ? 'Prova…' : 'Prova connessione'}
+				</button>
+				<button class="btn" type="button" onclick={syncHa} disabled={!!haBusy || !s.ha_token_set || !s.ha_url}>
+					<Icon name="refresh" size={18} />{haBusy === 'sync' ? 'Lettura…' : 'Aggiorna km ora'}
+				</button>
+				{#if !s.ha_token_set}<span class="subtle">Salva prima indirizzo e token.</span>{/if}
+			</div>
+			{#if haMessage}<div class="alert {haMessage.kind}" role="status">{haMessage.text}</div>{/if}
+			{#if haResults.length}
+				<ul class="list ha-results">
+					{#each haResults as r (r.vehicle_id)}
+						<li>
+							<span class="tile-ico"><Icon name={r.outcome === 'errore' ? 'alert' : r.outcome === 'ignorata' ? 'circle-alert' : 'gauge'} size={18} /></span>
+							<div class="grow">
+								<div class="t">{r.vehicle}{r.km != null ? ` · ${fmtKm(r.km)}` : ''}</div>
+								<div class="s">{r.outcome === 'errore' ? r.message : outcomeLabel[r.outcome]}</div>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{:else if s.ha_last_sync}
+				<p class="subtle" style="margin:0;font-size:14px">Ultima lettura {s.ha_last_sync.replace(' ', ' alle ')}: {s.ha_last_result}</p>
+			{/if}
+		</section>
+
 		{#if error}<div class="alert danger" role="alert">{error}</div>{/if}
 		<div class="form-actions">
 			<button class="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Salvataggio…' : 'Salva impostazioni'}</button>
@@ -320,6 +427,9 @@
 <style>
 	.wrap {
 		max-width: 820px;
+	}
+	.ha-results {
+		padding: 0;
 	}
 	details summary {
 		cursor: pointer;

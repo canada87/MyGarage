@@ -1,4 +1,4 @@
-//! Daily job: refreshes deadlines and sends reminder emails.
+//! Background jobs: hourly Home Assistant km sync; daily deadline refresh and reminder emails.
 //!
 //! Per deadline (identified by its due date/km) at most one "preavviso" when it becomes due soon,
 //! one "scadenza" on the due day and one "sollecito" a week while it stays overdue.
@@ -17,8 +17,19 @@ use crate::{
 
 const REMINDER_EVERY_DAYS: i64 = 7;
 
+/// Ticks between two Home Assistant syncs (6 × 10 minutes).
+const HA_SYNC_EVERY_TICKS: u32 = 6;
+
 pub async fn run(state: AppState) {
+    let mut ticks = 0u32;
     loop {
+        if ticks % HA_SYNC_EVERY_TICKS == 0 {
+            // Before the daily check, so reminders use fresh km.
+            if let Err(e) = crate::ha::sync_and_record(&state.db).await {
+                tracing::warn!("home assistant: {e:#}");
+            }
+        }
+        ticks = ticks.wrapping_add(1);
         if let Err(e) = tick(&state).await {
             tracing::error!("scheduler: {e:#}");
         }

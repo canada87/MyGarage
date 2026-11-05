@@ -18,6 +18,8 @@ pub struct Vehicle {
     pub color: String,
     pub notes: Option<String>,
     pub archived: bool,
+    /// Home Assistant odometer sensor, e.g. sensor.yaris_cross_odometer.
+    pub ha_entity: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -36,6 +38,8 @@ pub struct VehicleInput {
     pub notes: Option<String>,
     #[serde(default)]
     pub archived: bool,
+    #[serde(default)]
+    pub ha_entity: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, FromRow)]

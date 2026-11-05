@@ -11,6 +11,7 @@
 		purchased_used: boolean;
 		color: string;
 		notes: string;
+		ha_entity: string;
 	}
 
 	export function emptyVehicle(color: string): VehicleFormData {
@@ -25,15 +26,38 @@
 			purchase_date: '',
 			purchased_used: false,
 			color,
-			notes: ''
+			notes: '',
+			ha_entity: ''
 		};
 	}
 </script>
 
 <script lang="ts">
-	import { todayIso, vehicleColors } from '#lib/format.ts';
+	import { api } from '#lib/api.ts';
+	import { fmtKm, todayIso, vehicleColors } from '#lib/format.ts';
+	import type { HaSensor, Settings } from '#lib/types.ts';
 
 	let { data = $bindable() }: { data: VehicleFormData } = $props();
+
+	// The Home Assistant field appears only once HA is set up in the settings.
+	let haReady = $state(false);
+	let sensors = $state<HaSensor[]>([]);
+	let sensorsError = $state('');
+
+	$effect(() => {
+		api.get<Settings>('/settings')
+			.then((s) => {
+				haReady = !!s.ha_url && s.ha_token_set;
+				if (!haReady) return;
+				return api
+					.get<HaSensor[]>('/ha/sensors')
+					.then((list) => (sensors = list))
+					.catch((e) => (sensorsError = e.message));
+			})
+			.catch(() => {});
+	});
+
+	const picked = $derived(sensors.find((x) => x.entity_id === data.ha_entity.trim()));
 </script>
 
 <div class="form">
@@ -92,6 +116,33 @@
 			{/each}
 		</div>
 	</div>
+	{#if haReady || data.ha_entity}
+		<div class="field">
+			<label for="vf-ha">Sensore km di Home Assistant</label>
+			<input
+				id="vf-ha"
+				class="input"
+				list="vf-ha-list"
+				bind:value={data.ha_entity}
+				placeholder="Es. sensor.auto_odometer"
+				autocomplete="off"
+				autocapitalize="none"
+				spellcheck="false"
+			/>
+			<datalist id="vf-ha-list">
+				{#each sensors as x (x.entity_id)}<option value={x.entity_id}>{x.name}{x.km != null ? ` · ${fmtKm(x.km)}` : ''}</option>{/each}
+			</datalist>
+			<span class="hint">
+				{#if picked}
+					{picked.name}: ora segna {fmtKm(picked.km)}. I km si aggiornano da soli ogni ora.
+				{:else if sensorsError}
+					Non riesco a leggere i sensori: {sensorsError}
+				{:else}
+					Facoltativo. Se l’auto è in Home Assistant, i km si aggiornano da soli ogni ora. Lascia vuoto per inserirli a mano.
+				{/if}
+			</span>
+		</div>
+	{/if}
 	<div class="field">
 		<label for="vf-notes">Note</label>
 		<textarea id="vf-notes" class="input" bind:value={data.notes}></textarea>

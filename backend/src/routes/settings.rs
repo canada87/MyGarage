@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     error::{bad, ApiResult, AppError},
-    mailer,
+    ha, mailer,
     settings::Settings,
     AppState,
 };
@@ -13,6 +13,7 @@ pub struct SettingsView {
     #[serde(flatten)]
     pub settings: Settings,
     pub password_set: bool,
+    pub ha_token_set: bool,
 }
 
 #[derive(Deserialize)]
@@ -28,10 +29,14 @@ pub struct SettingsInput {
     pub send_hour: u32,
     pub default_warn_days: i64,
     pub default_warn_km: i64,
+    #[serde(default)]
+    pub ha_url: String,
+    /// `None` keeps the stored token; an empty string clears it.
+    pub ha_token: Option<String>,
 }
 
 fn view(s: Settings) -> SettingsView {
-    SettingsView { password_set: !s.smtp_password.is_empty(), settings: s }
+    SettingsView { password_set: !s.smtp_password.is_empty(), ha_token_set: !s.ha_token.is_empty(), settings: s }
 }
 
 pub async fn get(State(state): State<AppState>) -> ApiResult<SettingsView> {
@@ -59,6 +64,10 @@ pub async fn update(State(state): State<AppState>, Json(i): Json<SettingsInput>)
     s.send_hour = i.send_hour;
     s.default_warn_days = i.default_warn_days;
     s.default_warn_km = i.default_warn_km;
+    s.ha_url = i.ha_url.trim().trim_end_matches('/').to_string();
+    if let Some(t) = i.ha_token {
+        s.ha_token = t.trim().to_string();
+    }
     s.save(&state.db).await?;
     Ok(Json(view(s)))
 }
@@ -67,4 +76,26 @@ pub async fn test_email(State(state): State<AppState>) -> ApiResult<serde_json::
     let s = Settings::load(&state.db).await?;
     mailer::send_test(&s, &state.base_url).await.map_err(|e| AppError::BadRequest(format!("Invio non riuscito: {e:#}")))?;
     Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+/// Checks the Home Assistant address and token.
+pub async fn test_ha(State(state): State<AppState>) -> ApiResult<serde_json::Value> {
+    let s = Settings::load(&state.db).await?;
+    let client = ha::Client::from_settings(&s).map_err(|e| AppError::BadRequest(e.to_string()))?;
+    let msg = client.ping().await.map_err(|e| AppError::BadRequest(format!("{e:#}")))?;
+    Ok(Json(serde_json::json!({ "ok": true, "message": msg })))
+}
+
+/// Sensors that look like an odometer, to pick one for a car.
+pub async fn ha_sensors(State(state): State<AppState>) -> ApiResult<Vec<ha::Sensor>> {
+    let s = Settings::load(&state.db).await?;
+    let client = ha::Client::from_settings(&s).map_err(|e| AppError::BadRequest(e.to_string()))?;
+    let sensors = client.odometer_sensors().await.map_err(|e| AppError::BadRequest(format!("{e:#}")))?;
+    Ok(Json(sensors))
+}
+
+/// Reads the linked sensors now.
+pub async fn ha_sync(State(state): State<AppState>) -> ApiResult<Vec<ha::SyncResult>> {
+    let results = ha::sync_and_record(&state.db).await.map_err(|e| AppError::BadRequest(format!("{e:#}")))?;
+    Ok(Json(results))
 }

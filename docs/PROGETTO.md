@@ -200,4 +200,6 @@ Pulsante **+** sempre visibile: Aggiorna km · Registra intervento · Carica doc
 1. **MVP**: auto, km, scadenze con modelli, interventi/spese, dashboard, documenti, rubrica.
 2. Email + `.ics`, PWA.
 3. Gomme con calcolo km.
-4. Integrazione Home Assistant per i km (endpoint con token oppure lettura di un sensore HA).
+4. ~~Integrazione Home Assistant per i km~~ (fatto): MyGarage legge ogni ora il sensore del
+   contachilometri scelto per l'auto (`vehicles.ha_entity`) via REST API di HA con un token a
+   lunga durata, e salva una lettura `ha` al giorno; valori più bassi dei km attuali ignorati.

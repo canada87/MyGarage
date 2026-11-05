@@ -29,7 +29,8 @@
 					purchase_date: v.purchase_date ?? '',
 					purchased_used: v.purchased_used,
 					color: v.color,
-					notes: v.notes ?? ''
+					notes: v.notes ?? '',
+					ha_entity: v.ha_entity ?? ''
 				};
 			})
 			.catch((e) => (error = e.message));

@@ -1,5 +1,6 @@
 mod due;
 mod error;
+mod ha;
 mod ics;
 mod mailer;
 mod models;

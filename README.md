@@ -17,6 +17,8 @@ homelab: un solo container leggero (~15 MB di RAM), nessun account, nessun servi
 - **Gomme**: treni estivi/invernali, montaggi e km percorsi, stimati dalle letture del
   contachilometri quando non li sai.
 - **Numeri utili**: assicurazione, soccorso stradale, officina, con chiamata in un tap.
+- **Km da Home Assistant** (facoltativo): se l'auto ha un sensore del contachilometri in Home
+  Assistant, i km si aggiornano da soli ogni ora.
 - **Promemoria via email** (Gmail o altro SMTP) con l'evento `.ics` da aggiungere al calendario.
 - **Dashboard** globale e per auto, tema chiaro/scuro, interfaccia pensata per il telefono e
   installabile come app (PWA).
@@ -55,6 +57,19 @@ Il compose funziona anche incollato come stack in Portainer.
 
 Il controllo parte una volta al giorno all'ora scelta. Per ogni scadenza arriva un'email quando
 entra "in arrivo", una il giorno della scadenza e un sollecito a settimana finché resta scaduta.
+
+### Km da Home Assistant
+
+1. In Home Assistant: profilo → Sicurezza → **Token di accesso a lunga durata** → Crea token.
+2. In MyGarage → Impostazioni → "Km da Home Assistant": indirizzo (es.
+   `http://homeassistant.local:8123`) e token, salva e premi "Prova connessione".
+3. Nell'auto → Modifica dati → "Sensore km di Home Assistant": scegli il sensore del
+   contachilometri (es. `sensor.auto_odometer`). L'elenco propone i sensori di distanza in km o
+   miglia.
+
+MyGarage legge i sensori ogni ora e salva al massimo una lettura al giorno per auto (le miglia
+sono convertite in km). Un valore più basso dei km attuali viene ignorato. Il token resta nel
+database dell'app, mai nel compose.
 
 ### Installarla sul telefono
 

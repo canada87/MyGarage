@@ -43,6 +43,9 @@ pub fn router() -> Router<AppState> {
         .route("/contacts/{id}", put(contacts::update).delete(contacts::delete))
         .route("/settings", get(settings::get).put(settings::update))
         .route("/settings/test-email", post(settings::test_email))
+        .route("/ha/test", post(settings::test_ha))
+        .route("/ha/sensors", get(settings::ha_sensors))
+        .route("/ha/sync", post(settings::ha_sync))
 }
 
 /// Trims strings and turns empty ones into `None`.

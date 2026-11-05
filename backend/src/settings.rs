@@ -22,6 +22,13 @@ pub struct Settings {
     pub default_warn_km: i64,
     #[serde(skip_serializing)]
     pub last_run_date: String,
+    /// Home Assistant base URL, e.g. http://homeassistant.local:8123.
+    pub ha_url: String,
+    /// Long-lived access token.
+    #[serde(skip_serializing)]
+    pub ha_token: String,
+    pub ha_last_sync: String,
+    pub ha_last_result: String,
 }
 
 impl Default for Settings {
@@ -38,6 +45,10 @@ impl Default for Settings {
             default_warn_days: 30,
             default_warn_km: 2000,
             last_run_date: String::new(),
+            ha_url: String::new(),
+            ha_token: String::new(),
+            ha_last_sync: String::new(),
+            ha_last_result: String::new(),
         }
     }
 }
@@ -60,6 +71,10 @@ impl Settings {
             default_warn_days: get("default_warn_days").and_then(|v| v.parse().ok()).unwrap_or(d.default_warn_days),
             default_warn_km: get("default_warn_km").and_then(|v| v.parse().ok()).unwrap_or(d.default_warn_km),
             last_run_date: get("last_run_date").unwrap_or(d.last_run_date),
+            ha_url: get("ha_url").unwrap_or(d.ha_url),
+            ha_token: get("ha_token").unwrap_or(d.ha_token),
+            ha_last_sync: get("ha_last_sync").unwrap_or(d.ha_last_sync),
+            ha_last_result: get("ha_last_result").unwrap_or(d.ha_last_result),
         })
     }
 
@@ -84,6 +99,8 @@ impl Settings {
             ("send_hour", self.send_hour.to_string()),
             ("default_warn_days", self.default_warn_days.to_string()),
             ("default_warn_km", self.default_warn_km.to_string()),
+            ("ha_url", self.ha_url.clone()),
+            ("ha_token", self.ha_token.clone()),
         ];
         for (k, v) in pairs {
             Settings::set(db, k, &v).await?;

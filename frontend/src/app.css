@@ -565,6 +565,10 @@ textarea.input {
 	background: var(--primary-soft);
 	color: var(--primary);
 }
+.alert.ok {
+	background: var(--ok-soft);
+	color: var(--ok);
+}
 
 /* ---------- Lists ---------- */
 .list {

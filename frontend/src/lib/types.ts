@@ -18,6 +18,8 @@ export interface Vehicle {
 	color: string;
 	notes: string | null;
 	archived: boolean;
+	/** Home Assistant odometer sensor, e.g. sensor.yaris_cross_odometer. */
+	ha_entity: string | null;
 }
 
 export interface Counts {
@@ -212,4 +214,24 @@ export interface Settings {
 	default_warn_days: number;
 	default_warn_km: number;
 	password_set: boolean;
+	ha_url: string;
+	ha_token_set: boolean;
+	ha_last_sync: string;
+	ha_last_result: string;
+}
+
+export interface HaSensor {
+	entity_id: string;
+	name: string;
+	km: number | null;
+	unit: string | null;
+}
+
+export interface HaSyncResult {
+	vehicle_id: number;
+	vehicle: string;
+	entity: string;
+	km: number | null;
+	outcome: 'nuova' | 'aggiornata' | 'invariata' | 'ignorata' | 'errore';
+	message: string;
 }
