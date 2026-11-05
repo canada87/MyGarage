@@ -4,7 +4,7 @@
 	import Icon from '../Icon.svelte';
 	import VehicleSelect from './VehicleSelect.svelte';
 	import { api } from '#lib/api.ts';
-	import { documentKinds } from '#lib/format.ts';
+	import { documentKinds, todayIso } from '#lib/format.ts';
 	import { app, closeDialog, deleteWithUndo, refresh, toast } from '#lib/state.svelte.ts';
 	import type { DocumentFile } from '#lib/types.ts';
 
@@ -16,6 +16,9 @@
 	let vid = $state<number | null>(doc ? doc.vehicle_id : (vehicleId ?? app.vehicles[0]?.id ?? null));
 	let title = $state(doc?.title ?? '');
 	let kind = $state<string>(doc?.kind ?? 'libretto');
+	// Attached to an event, a new document takes the event's date (set by the server).
+	const dateFromEvent = !editing && !!eventId;
+	let docDate = $state(doc ? (doc.doc_date ?? doc.uploaded_at.slice(0, 10)) : todayIso());
 	let files = $state<FileList | null>(null);
 	let error = $state('');
 	let saving = $state(false);
@@ -27,7 +30,7 @@
 		try {
 			if (editing) {
 				if (!title.trim()) throw new Error('Il titolo è obbligatorio');
-				await api.put(`/documents/${doc!.id}`, { title, kind, vehicle_id: vid, event_id: doc!.event_id });
+				await api.put(`/documents/${doc!.id}`, { title, kind, vehicle_id: vid, event_id: doc!.event_id, doc_date: docDate || null });
 				toast('Documento aggiornato');
 			} else {
 				const list = Array.from(files ?? []);
@@ -38,6 +41,7 @@
 					fd.set('kind', kind);
 					if (vid) fd.set('vehicle_id', String(vid));
 					if (eventId) fd.set('event_id', String(eventId));
+					if (!dateFromEvent && docDate) fd.set('doc_date', docDate);
 					if (title.trim()) fd.set('title', list.length > 1 ? `${title} (${f.name})` : title);
 					await api.post('/documents', fd);
 				}
@@ -80,6 +84,13 @@
 				</select>
 			</div>
 		</div>
+		{#if !dateFromEvent}
+			<div class="field">
+				<label for="doc-date">Data del documento</label>
+				<input id="doc-date" class="input" type="date" bind:value={docDate} max={todayIso()} />
+				<span class="hint">Es. la data della fattura o della polizza. Decide in quale anno lo trovi.</span>
+			</div>
+		{/if}
 		{#if error}<div class="alert danger" role="alert">{error}</div>{/if}
 	</form>
 	{#snippet footer()}

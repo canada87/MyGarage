@@ -127,6 +127,8 @@ export interface DocumentFile {
 	mime: string;
 	size: number;
 	uploaded_at: string;
+	/** Date of the document itself (e.g. the invoice); decides its year. */
+	doc_date: string | null;
 }
 
 export interface Contact {

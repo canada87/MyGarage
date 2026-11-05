@@ -195,6 +195,7 @@ pub struct Document {
     pub mime: String,
     pub size: i64,
     pub uploaded_at: String,
+    pub doc_date: Option<NaiveDate>,
 }
 
 #[derive(Debug, Clone, Serialize, FromRow)]

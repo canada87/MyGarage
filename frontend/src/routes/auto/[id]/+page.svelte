@@ -346,7 +346,7 @@
 					<button class="chip" type="button" aria-pressed={docKind === k} onclick={() => (docKind = k)}>{label}</button>
 				{/each}
 			</div>
-			<DocumentList docs={visibleDocs} />
+			<DocumentList docs={visibleDocs} byYear />
 		{:else if tab === 'contatti'}
 			<div class="section-head">
 				<h2>Numeri utili</h2>

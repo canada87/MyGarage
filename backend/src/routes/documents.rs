@@ -5,6 +5,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use chrono::NaiveDate;
 use serde::Deserialize;
 
 use super::clean;
@@ -26,7 +27,7 @@ pub async fn list(State(state): State<AppState>, Query(q): Query<ListQuery>) -> 
     let rows = sqlx::query_as(
         "SELECT * FROM documents
          WHERE (?1 IS NULL OR vehicle_id = ?1) AND (?2 IS NULL OR event_id = ?2)
-         ORDER BY uploaded_at DESC, id DESC",
+         ORDER BY COALESCE(doc_date, date(uploaded_at)) DESC, id DESC",
     )
     .bind(q.vehicle_id)
     .bind(q.event_id)
@@ -48,6 +49,7 @@ pub async fn upload(State(state): State<AppState>, mut mp: Multipart) -> ApiResu
     let mut kind = "altro".to_string();
     let mut vehicle_id = None;
     let mut event_id = None;
+    let mut doc_date: Option<NaiveDate> = None;
     let mut file: Option<(String, String, Vec<u8>)> = None;
 
     while let Some(field) = mp.next_field().await.map_err(|e| bad(e.to_string()))? {
@@ -69,6 +71,9 @@ pub async fn upload(State(state): State<AppState>, mut mp: Multipart) -> ApiResu
                     "kind" if KINDS.contains(&text.as_str()) => kind = text,
                     "vehicle_id" => vehicle_id = parse_id(&text)?,
                     "event_id" => event_id = parse_id(&text)?,
+                    "doc_date" if !text.trim().is_empty() => {
+                        doc_date = Some(text.trim().parse().map_err(|_| bad("Data del documento non valida"))?)
+                    }
                     _ => {}
                 }
             }
@@ -85,6 +90,17 @@ pub async fn upload(State(state): State<AppState>, mut mp: Multipart) -> ApiResu
             .fetch_optional(&state.db)
             .await?;
     }
+
+    // Without a date the document takes the date of its event, otherwise today.
+    if doc_date.is_none() {
+        if let Some(eid) = event_id {
+            doc_date = sqlx::query_scalar("SELECT date FROM events WHERE id = ?")
+                .bind(eid)
+                .fetch_optional(&state.db)
+                .await?;
+        }
+    }
+    let doc_date = doc_date.unwrap_or_else(|| chrono::Local::now().date_naive());
 
     let ext = std::path::Path::new(&original)
         .extension()
@@ -103,8 +119,8 @@ pub async fn upload(State(state): State<AppState>, mut mp: Multipart) -> ApiResu
         std::path::Path::new(&original).file_stem().and_then(|s| s.to_str()).unwrap_or("Documento").to_string()
     });
     let doc = sqlx::query_as(
-        "INSERT INTO documents (vehicle_id, event_id, title, kind, stored_name, original_name, mime, size)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
+        "INSERT INTO documents (vehicle_id, event_id, title, kind, stored_name, original_name, mime, size, doc_date)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
     )
     .bind(vehicle_id)
     .bind(event_id)
@@ -114,6 +130,7 @@ pub async fn upload(State(state): State<AppState>, mut mp: Multipart) -> ApiResu
     .bind(&original)
     .bind(mime)
     .bind(bytes.len() as i64)
+    .bind(doc_date)
     .fetch_one(&state.db)
     .await;
     match doc {
@@ -131,6 +148,7 @@ pub struct DocumentUpdate {
     kind: String,
     vehicle_id: Option<i64>,
     event_id: Option<i64>,
+    doc_date: Option<NaiveDate>,
 }
 
 pub async fn update(State(state): State<AppState>, Path(id): Path<i64>, Json(d): Json<DocumentUpdate>) -> ApiResult<Document> {
@@ -140,11 +158,14 @@ pub async fn update(State(state): State<AppState>, Path(id): Path<i64>, Json(d):
     if !KINDS.contains(&d.kind.as_str()) {
         return Err(bad("Tipo di documento non valido"));
     }
-    let doc = sqlx::query_as("UPDATE documents SET title = ?, kind = ?, vehicle_id = ?, event_id = ? WHERE id = ? RETURNING *")
+    let doc = sqlx::query_as("UPDATE documents SET title = ?, kind = ?, vehicle_id = ?, event_id = ?, doc_date = COALESCE(?, doc_date)
+         WHERE id = ? RETURNING *",
+    )
         .bind(d.title.trim())
         .bind(d.kind)
         .bind(d.vehicle_id)
         .bind(d.event_id)
+        .bind(d.doc_date)
         .bind(id)
         .fetch_one(&state.db)
         .await?;

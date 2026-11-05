@@ -72,7 +72,9 @@ events              id, vehicle_id, schedule_id?, task_type_id, date, km?, cost?
    e spese)
 
 documents           id, vehicle_id?, event_id?, title, kind (libretto | fattura | polizza |
-                    foto | altro), file_path, mime, size, uploaded_at
+                    foto | altro), file_path, mime, size, uploaded_at,
+                    doc_date (data del documento: decide l'anno in cui viene mostrato;
+                    di default quella dell'intervento collegato, altrimenti il caricamento)
 
 contacts            id, vehicle_id? (null = globale), name, category (assicurazione |
                     soccorso | officina | gommista | altro), phone?, email?,
@@ -176,6 +178,7 @@ Navigazione: barra in basso su telefono, barra laterale da 1024 px in su.
    La scheda **Km** mostra il grafico del contachilometri, i km per anno (stimati dalle letture
    più vicine al 1° gennaio), le medie e l'elenco delle letture: ognuna si corregge o si elimina
    con un tocco. Le letture nate da un intervento si modificano dall'intervento.
+   La scheda **Documenti** li raggruppa per anno secondo la data del documento.
 3. **Scadenze** — tutte le scadenze, filtrabili per auto, stato e categoria.
 4. **Spese** — totali per anno, auto e categoria; elenco degli interventi con costo.
 5. **Rubrica** — numeri globali e per auto, chiamata con un tap.
